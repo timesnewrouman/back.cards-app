@@ -1,10 +1,11 @@
 {
   "name": "back.cards-app",
   "version": "1.0.0",
-  "description": "cards-app.back",
+  "description": "back.cards-app",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "author": "Zhigaikov Roman",
   "license": "ISC",
