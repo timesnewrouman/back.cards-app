@@ -1,12 +1,14 @@
+/* eslint-disable no-console */
 const express = require('express');
-const app = express();
-const router = require('./routes');
-const bodyParser = require('body-parser');
+// const bodyParser = require('body-parser');
 const path = require('path');
+const router = require('./routes');
 
-const { PORT = 3000, BASE_PATH } = process.env;
+const app = express();
 
-app.use(bodyParser.urlencoded({ extended: true }));
+const { PORT = 3000 } = process.env;
+
+// app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', router);
@@ -16,5 +18,4 @@ app.use('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
-  console.log(BASE_PATH);
 });
