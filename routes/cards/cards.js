@@ -1,11 +1,8 @@
-/* eslint-disable import/no-dynamic-require */
 const router = require('express').Router();
-const path = require('path');
+const { getCards, postCard, deleteCardById } = require('../../controllers/cards');
 
-const cards = require(path.join(__dirname, '../../data/cards.json'));
-
-router.get('/', (req, res) => {
-  res.send(cards);
-});
+router.get('/', getCards);
+router.post('/', postCard);
+router.delete('/:id', deleteCardById);
 
 module.exports = router;
