@@ -20,12 +20,21 @@ module.exports.postCard = (req, res) => { // добавление карточк
 };
 
 module.exports.deleteCardById = (req, res) => { // удаление карточки
-  Card.findByIdAndRemove(req.params.id)
-    .then((user) => res.send({ data: user }))
+  Card.findById(req.params.id)
+    .then((card) => {
+      const { owner } = card;
+      return owner;
+    })
+    .then((owner) => {
+      const a = JSON.stringify(owner).slice(1, -1); // преобразовываем объект в строку и убираем ' '
+      if (a !== req.user._id) {
+        return Promise.reject(new Error('Карточка добавлена не вами - удаление невозможно'));
+      }
+      Card.findByIdAndRemove(req.params.id)
+        .then((user) => res.send({ data: user }))
+        .catch((err) => res.status(500).send({ message: err.message }));
+    })
     .catch((err) => res.status(500).send({ message: err.message }));
-  if (Card.findByIdAndRemove(req.params.id)) {
-    return res.status(404).send({ message: 'Нет пользователя с таким id' });
-  }
 };
 
 module.exports.likeCard = (req, res) => { // лайк карточки
