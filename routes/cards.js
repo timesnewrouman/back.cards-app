@@ -1,4 +1,3 @@
-/* eslint-disable object-curly-newline */
 const router = require('express').Router();
 const { getCards, postCard, deleteCardById, likeCard, removeLike } = require('../controllers/cards');
 
