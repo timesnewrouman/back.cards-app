@@ -1,4 +1,5 @@
 const router = require('express').Router();
+// eslint-disable-next-line object-curly-newline
 const { getUsers, getUserById, patchUser, patchUserAvatar } = require('../controllers/users');
 
 router.get('/', getUsers);

@@ -3,8 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
-const { PORT } = require('./config');
-const { DATABASE_URL } = require('./config');
+const { PORT, DATABASE_URL } = require('./config');
 
 const app = express();
 
@@ -29,5 +28,6 @@ app.use('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
+  // eslint-disable-next-line no-console
   console.log(`App listening on port ${PORT}`);
 });

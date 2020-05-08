@@ -2,7 +2,9 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config');
+const NotFoundError = require('../errors/notFoundError');
 
+// eslint-disable-next-line import/no-dynamic-require
 const User = require(path.join(__dirname, '../models/user'));
 
 module.exports.getUsers = (req, res) => { // получение всех пользователей
@@ -13,21 +15,23 @@ module.exports.getUsers = (req, res) => { // получение всех пол�
 
 module.exports.getUserById = (req, res) => { // получение пользователя по id
   User.findById(req.params.id)
-    .then((user) => {
-      if (user === null) {
-        return res.status(404).send({ message: 'Пользователь не найден' });
-      }
-      res.send({ data: user })
-    })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .orFail(() => new NotFoundError('Пользователь не найден'))
+    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      const statusCode = err.statusCode || 500;
+      const message = statusCode === 500 ? 'Произошла ошибка' : err.message;
+      res.status(statusCode).send({ message });
+    });
 };
 
 module.exports.createUser = (req, res) => { // создание пользователя
+  // eslint-disable-next-line object-curly-newline
   const { name, about, avatar, email } = req.body;
   bcrypt.hash(req.body.password, 10)
+    // eslint-disable-next-line object-curly-newline
     .then((hash) => User.create({ name, about, avatar, email, password: hash }))
     .then((user) => {
-      res.send({ data: user.omitPrivate() })
+      res.send({ data: user.omitPrivate() });
     })
     .catch((err) => res.status(500).send({ message: err.message }));
 };
@@ -42,7 +46,9 @@ module.exports.login = (req, res) => { // авторизация пользов�
       });
     })
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      const statusCode = err.statusCode || 500;
+      const message = statusCode === 500 ? 'Произошла ошибка' : err.message;
+      res.status(statusCode).send({ message });
     });
 };
 
