@@ -1,11 +1,8 @@
-const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config');
 const NotFoundError = require('../errors/notFoundError');
-
-// eslint-disable-next-line import/no-dynamic-require
-const User = require(path.join(__dirname, '../models/user'));
+const User = require('../models/user');
 
 module.exports.getUsers = (req, res) => { // получение всех пользователей
   User.find({})

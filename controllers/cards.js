@@ -1,8 +1,6 @@
-const path = require('path');
 const NotFoundError = require('../errors/notFoundError');
-
-// eslint-disable-next-line import/no-dynamic-require
-const Card = require(path.join(__dirname, '../models/card'));
+const ForbiddenError = require('../errors/forbiddenError');
+const Card = require('../models/card');
 
 module.exports.getCards = (req, res) => { // получение всех карточек
   Card.find({})
@@ -23,7 +21,7 @@ module.exports.deleteCardById = (req, res) => { // удаление карточ
     .orFail(() => new NotFoundError('Карточка не найдена'))
     .then((card) => {
       if (!card.owner.equals(req.user._id)) {
-        return res.status(403).send({ message: 'Карточка добавлена не вами - удаление невозможно' });
+        return Promise.reject(new ForbiddenError('Карточка добавлена не вами - удаление невозможно'));
       }
       return Card.findByIdAndRemove(req.params.id)
         .then((user) => res.send({ data: user }));
