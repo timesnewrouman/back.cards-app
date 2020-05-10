@@ -1,6 +1,7 @@
-/* eslint-disable no-useless-escape */
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
+const UnathorizedError = require('../errors/unathorizedError');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -24,6 +25,40 @@ const userSchema = new mongoose.Schema({
       },
     },
   },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    validate: {
+      validator(email) {
+        return validator.isEmail(email);
+      },
+    },
+  },
+  password: {
+    type: String,
+    required: true,
+    select: false,
+  },
 });
+
+// eslint-disable-next-line func-names
+userSchema.statics.findUserByCredentials = function (email, password) {
+  return this.findOne({ email }).select('+password')
+    .orFail(() => new UnathorizedError('Неправильные почта или пароль123')) // проверка email
+    .then((user) => bcrypt.compare(password, user.password)
+      .then((matched) => {
+        if (!matched) {
+          return Promise.reject(new UnathorizedError('Неправильные почта или пароль')); // проверка password
+        }
+        return user;
+      }));
+};
+
+userSchema.methods.omitPrivate = function omitPrivate() {
+  const obj = this.toObject();
+  delete obj.password;
+  return obj;
+};
 
 module.exports = mongoose.model('user', userSchema);

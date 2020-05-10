@@ -1,9 +1,6 @@
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable consistent-return */
-/* eslint-disable import/no-dynamic-require */
-const path = require('path');
-
-const Card = require(path.join(__dirname, '../models/card'));
+const NotFoundError = require('../errors/notFoundError');
+const ForbiddenError = require('../errors/forbiddenError');
+const Card = require('../models/card');
 
 module.exports.getCards = (req, res) => { // получение всех карточек
   Card.find({})
@@ -20,26 +17,44 @@ module.exports.postCard = (req, res) => { // добавление карточк
 };
 
 module.exports.deleteCardById = (req, res) => { // удаление карточки
-  Card.findByIdAndRemove(req.params.id)
-    .then((user) => res.send({ data: user }))
-    .catch((err) => res.status(500).send({ message: err.message }));
-  if (Card.findByIdAndRemove(req.params.id)) {
-    return res.status(404).send({ message: 'Нет пользователя с таким id' });
-  }
+  Card.findById(req.params.id)
+    .orFail(() => new NotFoundError('Карточка не найдена'))
+    .then((card) => {
+      if (!card.owner.equals(req.user._id)) {
+        return Promise.reject(new ForbiddenError('Карточка добавлена не вами - удаление невозможно'));
+      }
+      return Card.findByIdAndRemove(req.params.id)
+        .then((user) => res.send({ data: user }));
+    })
+    .catch((err) => {
+      const statusCode = err.statusCode || 500;
+      const message = statusCode === 500 ? 'Произошла ошибка' : err.message;
+      res.status(statusCode).send({ message });
+    });
 };
 
 module.exports.likeCard = (req, res) => { // лайк карточки
   Card.findByIdAndUpdate(req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true })
+    .orFail(() => new NotFoundError('Нет карточки с таким id'))
     .then((like) => res.send({ data: like }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      const statusCode = err.statusCode || 500;
+      const message = statusCode === 500 ? 'Произошла ошибка' : err.message;
+      res.status(statusCode).send({ message });
+    });
 };
 
 module.exports.removeLike = (req, res) => { // снятие лайка карточки
   Card.findByIdAndUpdate(req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true })
+    .orFail(() => new NotFoundError('Нет карточки с таким id'))
     .then((like) => res.send({ data: like }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      const statusCode = err.statusCode || 500;
+      const message = statusCode === 500 ? 'Произошла ошибка' : err.message;
+      res.status(statusCode).send({ message });
+    });
 };
