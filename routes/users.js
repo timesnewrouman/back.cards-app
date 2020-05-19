@@ -1,10 +1,24 @@
 const router = require('express').Router();
+const { celebrate, Joi } = require('celebrate');
 // eslint-disable-next-line object-curly-newline
 const { getUsers, getUserById, patchUser, patchUserAvatar } = require('../controllers/users');
 
 router.get('/', getUsers);
-router.get('/:id', getUserById);
-router.patch('/me', patchUser);
-router.patch('/me/avatar', patchUserAvatar);
+router.get('/:id', celebrate({
+  params: Joi.object().keys({
+    id: Joi.string().alphanum().length(24),
+  }).unknown(true),
+}), getUserById);
+router.patch('/me', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
+  }).unknown(true),
+}), patchUser);
+router.patch('/me/avatar', celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().required().uri(),
+  }).unknown(true),
+}), patchUserAvatar);
 
 module.exports = router;

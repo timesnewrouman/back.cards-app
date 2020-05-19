@@ -1,7 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 const auth = require('./middlewares/auth');
 const { PORT, DATABASE_URL } = require('./config');
 
@@ -16,16 +19,22 @@ mongoose.connect(DATABASE_URL, {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(requestLogger);
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
+
 app.post('/signin', login);
 app.post('/signup', createUser);
 
 app.use(auth);
-
 app.use('/', require('./routes/index'));
 
-app.use('/', (req, res) => {
-  res.status(404).json({ message: 'Запрашиваемый ресурс не найден' });
-});
+app.use(errorLogger);
+
+app.use(errors());
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
