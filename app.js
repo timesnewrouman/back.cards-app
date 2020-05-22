@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { celebrate, Joi } = require('celebrate');
 const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
@@ -26,17 +27,36 @@ app.get('/crash-test', () => {
   }, 0);
 });
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }).unknown(true),
+}), login);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
+//   avatar: Joi.string().required().uri(),
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }).unknown(true),
+}), createUser);
 
 app.use(auth);
 app.use('/', require('./routes/index'));
 
 app.use(errorLogger);
-
 app.use(errors());
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`App listening on port ${PORT}`);
+});
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  const message = statusCode === 500 ? 'Произошла ошибка' : err.message;
+  res.status(statusCode).send({ message });
 });

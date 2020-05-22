@@ -4,24 +4,20 @@ const jwt = require('jsonwebtoken');
 const NotFoundError = require('../errors/notFoundError');
 const User = require('../models/user');
 
-module.exports.getUsers = (req, res) => { // получение всех пользователей
+module.exports.getUsers = (req, res, next) => { // получение всех пользователей
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch(next);
 };
 
-module.exports.getUserById = (req, res) => { // получение пользователя по id
+module.exports.getUserById = (req, res, next) => { // получение пользователя по id
   User.findById(req.params.id)
     .orFail(() => new NotFoundError('Пользователь не найден'))
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      const statusCode = err.statusCode || 500;
-      const message = statusCode === 500 ? 'Произошла ошибка' : err.message;
-      res.status(statusCode).send({ message });
-    });
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => { // создание пользователя
+module.exports.createUser = (req, res, next) => { // создание пользователя
   // eslint-disable-next-line object-curly-newline
   const { name, about, avatar, email } = req.body;
   bcrypt.hash(req.body.password, 10)
@@ -30,10 +26,10 @@ module.exports.createUser = (req, res) => { // создание пользова
     .then((user) => {
       res.send({ data: user.omitPrivate() });
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch(next);
 };
 
-module.exports.login = (req, res) => { // авторизация пользователя
+module.exports.login = (req, res, next) => { // авторизация пользователя
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
@@ -42,23 +38,19 @@ module.exports.login = (req, res) => { // авторизация пользов�
         token: jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' }),
       });
     })
-    .catch((err) => {
-      const statusCode = err.statusCode || 500;
-      const message = statusCode === 500 ? 'Произошла ошибка' : err.message;
-      res.status(statusCode).send({ message });
-    });
+    .catch(next);
 };
 
-module.exports.patchUser = (req, res) => { // изменение пользователя
+module.exports.patchUser = (req, res, next) => { // изменение пользователя
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => res.send({ data: user }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch(next);
 };
 
-module.exports.patchUserAvatar = (req, res) => { // изменение аватара пользователя
+module.exports.patchUserAvatar = (req, res, next) => { // изменение аватара пользователя
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => res.send({ data: user.avatar }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch(next);
 };
