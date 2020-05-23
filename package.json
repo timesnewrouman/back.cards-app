@@ -1,6 +1,6 @@
 {
   "name": "back.cards-app",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "back.cards-app",
   "main": "app.js",
   "scripts": {

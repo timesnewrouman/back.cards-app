@@ -2,12 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const { celebrate, Joi } = require('celebrate');
+const { celebrate } = require('celebrate');
 const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const auth = require('./middlewares/auth');
 const { PORT, DATABASE_URL } = require('./config');
+const createUserSchema = require('./validationSchemas/createUser');
+const loginSchema = require('./validationSchemas/login');
 
 const app = express();
 
@@ -27,21 +29,8 @@ app.get('/crash-test', () => {
   }, 0);
 });
 
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
-  }).unknown(true),
-}), login);
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    about: Joi.string().required().min(2).max(30),
-    avatar: Joi.string().required().regex(/(http:\/\/|https:\/\/)(www\.)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|(\w|-)+\.(\w|-)+(\.(\w|-))?)(:\d{1,5})?[a-zA-Z0-9/_-]+#?(\.\w+)?/im),
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
-  }).unknown(true),
-}), createUser);
+app.post('/signin', celebrate(loginSchema), login);
+app.post('/signup', celebrate(createUserSchema), createUser);
 
 app.use(auth);
 app.use('/', require('./routes/index'));
