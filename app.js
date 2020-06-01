@@ -2,11 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { celebrate } = require('celebrate');
 const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const auth = require('./middlewares/auth');
 const { PORT, DATABASE_URL } = require('./config');
+const createUserSchema = require('./validationSchemas/createUser');
+const loginSchema = require('./validationSchemas/login');
 
 const app = express();
 
@@ -20,23 +23,22 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(requestLogger);
-app.get('/crash-test', () => {
-  setTimeout(() => {
-    throw new Error('Сервер сейчас упадёт');
-  }, 0);
-});
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate(loginSchema), login);
+app.post('/signup', celebrate(createUserSchema), createUser);
 
 app.use(auth);
 app.use('/', require('./routes/index'));
 
 app.use(errorLogger);
-
 app.use(errors());
 
 app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
   console.log(`App listening on port ${PORT}`);
+});
+
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  const message = statusCode === 500 ? 'Произошла ошибка' : err.message;
+  res.status(statusCode).send({ message });
 });

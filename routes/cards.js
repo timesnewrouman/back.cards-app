@@ -1,29 +1,15 @@
 const router = require('express').Router();
-const { celebrate, Joi } = require('celebrate');
-// eslint-disable-next-line object-curly-newline
+const { celebrate } = require('celebrate');
 const { getCards, postCard, deleteCardById, likeCard, removeLike } = require('../controllers/cards');
+const likeCardSchema = require('../validationSchemas/likeCard');
+const removeLikeSchema = require('../validationSchemas/removeLike');
+const deleteCardByIdSchema = require('../validationSchemas/deleteCardById');
+const postCardSchema = require('../validationSchemas/postCard');
 
 router.get('/', getCards);
-router.post('/', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required().uri(),
-  }).unknown(true),
-}), postCard);
-router.delete('/:id', celebrate({
-  params: Joi.object().keys({
-    id: Joi.string().alphanum().length(24),
-  }).unknown(true),
-}), deleteCardById);
-router.put('/:cardId/likes', celebrate({
-  params: Joi.object().keys({
-    id: Joi.string().alphanum().length(24),
-  }).unknown(true),
-}), likeCard);
-router.delete('/:cardId/likes', celebrate({
-  params: Joi.object().keys({
-    id: Joi.string().alphanum().length(24),
-  }).unknown(true),
-}), removeLike);
+router.post('/', celebrate(postCardSchema), postCard);
+router.delete('/:id', celebrate(deleteCardByIdSchema), deleteCardById);
+router.put('/:cardId/likes', celebrate(likeCardSchema), likeCard);
+router.delete('/:cardId/likes', celebrate(removeLikeSchema), removeLike);
 
 module.exports = router;
