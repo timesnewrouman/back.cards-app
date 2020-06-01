@@ -18,10 +18,8 @@ module.exports.getUserById = (req, res, next) => { // получение пол�
 };
 
 module.exports.createUser = (req, res, next) => { // создание пользователя
-  // eslint-disable-next-line object-curly-newline
   const { name, about, avatar, email } = req.body;
   bcrypt.hash(req.body.password, 10)
-    // eslint-disable-next-line object-curly-newline
     .then((hash) => User.create({ name, about, avatar, email, password: hash }))
     .then((user) => {
       res.send({ data: user.omitPrivate() });

@@ -1,6 +1,5 @@
 const router = require('express').Router();
 const { celebrate } = require('celebrate');
-// eslint-disable-next-line object-curly-newline
 const { getUsers, getUserById, patchUser, patchUserAvatar } = require('../controllers/users');
 const getUserByIdSchema = require('../validationSchemas/getUserById');
 const patchUserSchema = require('../validationSchemas/patchUser');

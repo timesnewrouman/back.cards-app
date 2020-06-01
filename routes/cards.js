@@ -1,6 +1,5 @@
 const router = require('express').Router();
 const { celebrate } = require('celebrate');
-// eslint-disable-next-line object-curly-newline
 const { getCards, postCard, deleteCardById, likeCard, removeLike } = require('../controllers/cards');
 const likeCardSchema = require('../validationSchemas/likeCard');
 const removeLikeSchema = require('../validationSchemas/removeLike');

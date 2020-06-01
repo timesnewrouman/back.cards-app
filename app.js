@@ -23,11 +23,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(requestLogger);
-app.get('/crash-test', () => {
-  setTimeout(() => {
-    throw new Error('Сервер сейчас упадёт');
-  }, 0);
-});
 
 app.post('/signin', celebrate(loginSchema), login);
 app.post('/signup', celebrate(createUserSchema), createUser);
@@ -39,11 +34,9 @@ app.use(errorLogger);
 app.use(errors());
 
 app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
   console.log(`App listening on port ${PORT}`);
 });
 
-// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = statusCode === 500 ? 'Произошла ошибка' : err.message;
